@@ -2,6 +2,7 @@ import numpy as np
 from RRTTree import RRTTree
 import time
 import math
+import random
 
 class RRTPlanner(object):
 
@@ -33,11 +34,19 @@ class RRTPlanner(object):
         '''not sure what is n in the algorithm!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'''
         for i in range(numOfStates):
             '''not sure what is n in the algorithm!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! '''
-            x_rand = np.random.uniform(self.planning_env.xlimits[0], self.planning_env.xlimits[1])
+            rand_num_between_0_and_1 = random.random()
+            if rand_num_between_0_and_1 <= self.goal_prob:
+                x_rand = self.planning_env.goal
+            else:
+                #x_rand = np.random.uniform(self.planning_env.xlimits[0], self.planning_env.xlimits[1])
+                x_rand = [np.random.randint(self.planning_env.xlimits[0], self.planning_env.xlimits[1]),
+                          np.random.randint(self.planning_env.ylimits[0], self.planning_env.ylimits[1])]
             if self.planning_env.state_validity_checker(x_rand) == False:
                 continue
             x_near_idx, x_near = self.tree.get_nearest_state(x_rand)
             x_new = self.extend(x_near,x_rand)
+            if self.planning_env.state_validity_checker(x_new) == False:
+                continue
             self.tree.add_vertex(x_new)
             x_new_idx = self.tree.get_idx_for_state(x_new)
             if self.planning_env.edge_validity_checker(x_near,x_new) == False:
