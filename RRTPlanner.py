@@ -1,6 +1,7 @@
 import numpy as np
 from RRTTree import RRTTree
 import time
+import math
 
 class RRTPlanner(object):
 
@@ -62,7 +63,7 @@ class RRTPlanner(object):
         i = 0
         cost = 0
         while i < len(plan) - 1:
-            cost+= self.planning_env.compute_distance(plan[i],plan[i+1])
+            cost += self.planning_env.compute_distance(plan[i], plan[i+1])
         return cost
 
     def extend(self, near_state, rand_state):
@@ -77,13 +78,8 @@ class RRTPlanner(object):
             x_new = rand_state
         else:
             # Need to fix this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            if near_state[0] < rand_state[0]:
-                x_new[0] = near_state[0] + self.step_size
-            else:
-                x_new[0] = near_state[0] - self.step_size
-            if near_state[1] < rand_state[1]:
-                x_new[1] = near_state[1] + self.step_size
-            else:
-                x_new[1] = near_state[1] - self.step_size
-            x_new = near_state
+            distance_vec = rand_state - near_state
+            distance_vec_norm = math.sqrt(distance_vec[0]*distance_vec[0] + distance_vec[1]*distance_vec[1])
+            distance_vec_normalized = distance_vec * (1/distance_vec_norm)
+            x_new = near_state + distance_vec_normalized*self.step_size
         return x_new
