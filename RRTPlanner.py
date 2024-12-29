@@ -13,6 +13,8 @@ class RRTPlanner(object):
         # set search params
         self.ext_mode = ext_mode
         self.goal_prob = goal_prob
+        # step_size can be either 5, 10 or 15
+        self.step_size = 5
 
     def plan(self):
         '''
@@ -24,7 +26,27 @@ class RRTPlanner(object):
         plan = []
 
         # TODO: Task 3
-        
+
+        self.tree.add_vertex(self.planning_env.start)
+        numOfStates = (self.planning_env.xlimits[1]+1)*(self.planning_env.ylimits[1]+1)
+        '''not sure what is n in the algorithm!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'''
+        for i in range(numOfStates):
+            '''not sure what is n in the algorithm!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! '''
+            x_rand = np.random.uniform(self.planning_env.xlimits[0], self.planning_env.xlimits[1])
+            if self.planning_env.state_validity_checker(x_rand) == False:
+                continue
+            x_near_idx, x_near = self.tree.get_nearest_state(x_rand)
+            x_new = self.extend(x_near,x_rand)
+            self.tree.add_vertex(x_new)
+            x_new_idx = self.tree.get_idx_for_state(x_new)
+            if self.planning_env.edge_validity_checker(x_near,x_new) == False:
+                continue
+            edge_cost = self.planning_env.compute_distance(x_near, x_new)
+            self.tree.add_edge(x_near_idx,x_new_idx,edge_cost)
+            plan.append(x_new)
+            '''maybe need to check both indexes'''
+            if self.planning_env.goal == x_new:
+                break
         # print total path cost and time
         print('Total cost of path: {:.2f}'.format(self.compute_cost(plan)))
         print('Total time: {:.2f}'.format(time.time()-start_time))
@@ -37,8 +59,11 @@ class RRTPlanner(object):
         @param plan A given plan for the robot.
         '''
         # TODO: Task 3
-
-        pass
+        i = 0
+        cost = 0
+        while i < len(plan) - 1:
+            cost+= self.planning_env.compute_distance(plan[i],plan[i+1])
+        return cost
 
     def extend(self, near_state, rand_state):
         '''
@@ -47,5 +72,18 @@ class RRTPlanner(object):
         @param rand_state The sampled position.
         '''
         # TODO: Task 3
-
-        pass
+        x_new = [0,0]
+        if (self.ext_mode == 'E1'):
+            x_new = rand_state
+        else:
+            # Need to fix this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if near_state[0] < rand_state[0]:
+                x_new[0] = near_state[0] + self.step_size
+            else:
+                x_new[0] = near_state[0] - self.step_size
+            if near_state[1] < rand_state[1]:
+                x_new[1] = near_state[1] + self.step_size
+            else:
+                x_new[1] = near_state[1] - self.step_size
+            x_new = near_state
+        return x_new
